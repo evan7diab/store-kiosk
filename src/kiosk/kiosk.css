@@ -1227,3 +1227,242 @@
   }
 }
 
+@media (max-width: 700px) {
+  .ck-head {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .ck-face {
+    height: 40px;
+  }
+
+  .ck-brand strong {
+    font-size: 16px;
+  }
+
+  .ck-brand small {
+    margin-top: 3px;
+    letter-spacing: 0.16em;
+    font-size: 8px;
+  }
+
+  .ck-pill {
+    max-width: 148px;
+    padding: 7px 10px;
+    font-size: 12px;
+    line-height: 1.25;
+    text-align: left;
+  }
+
+  .ck-wrap {
+    padding: 8px 10px;
+  }
+
+  .ck-kiosk {
+    border-radius: 18px;
+  }
+
+  .ck-side {
+    flex: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    max-height: none;
+    padding: 10px 12px;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .ck-sidecontent {
+    display: flex;
+    align-items: center;
+    order: -1;
+    min-width: 0;
+  }
+
+  .ck-mascot,
+  .ck-eyebrow,
+  .ck-sep,
+  .ck-side p,
+  .ck-sidefoot {
+    display: none;
+  }
+
+  .ck-copy {
+    min-width: 0;
+  }
+
+  .ck-side h1 {
+    font-size: 18px;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .ck-side h1 br {
+    display: none;
+  }
+
+  .ck-side h1 em::before {
+    content: " ";
+  }
+
+  .ck-lang {
+    align-self: center;
+    flex: none;
+  }
+
+  .ck-panel {
+    padding: 14px 14px 12px;
+  }
+
+  .ck-panel h2 {
+    font-size: 26px;
+    margin: 8px 0 2px;
+  }
+
+  .ck-intro {
+    margin-bottom: 8px;
+  }
+
+  .ck-progress {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+  }
+
+  .ck-bar {
+    flex: 1 1 100%;
+    order: 3;
+    margin-left: 0;
+  }
+
+  .ck-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ck-field {
+    margin-bottom: 8px;
+  }
+
+  .ck input,
+  .ck select,
+  .ck-birthbtn,
+  .ck-control {
+    height: 48px;
+    padding: 0 12px;
+    font-size: 15px;
+  }
+
+  .ck-birthbtn {
+    font-size: 13px;
+  }
+
+  .ck-action {
+    gap: 10px;
+    padding-top: 8px;
+  }
+
+  .ck-primary,
+  .ck-secondary {
+    min-height: 50px;
+    padding: 12px 14px;
+  }
+
+  .ck-pick {
+    min-height: 108px;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .ck-pick-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .ck-pick-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ck-summary div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 8px 0;
+  }
+
+  .ck-choice {
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .ck-choice input {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ck-success h2 {
+    font-size: 30px;
+  }
+
+  .ck-success-copy {
+    font-size: 14px;
+  }
+
+  .ck-check {
+    width: 68px;
+    height: 68px;
+  }
+
+  .ck-check svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ck-timer {
+    width: 88px;
+    height: 88px;
+    margin-top: 14px;
+  }
+
+  .ck-timer-num {
+    font-size: 26px;
+  }
+
+  .ck-done {
+    width: min(100%, 320px);
+    justify-content: space-between;
+    margin-top: 14px;
+    font-size: 15px;
+  }
+
+  .ck-sheet {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .ck-dialog,
+  .ck-date-dialog {
+    width: 100%;
+    max-height: 88dvh;
+    border-radius: 22px 22px 0 0;
+    padding: 18px 16px 16px;
+  }
+
+  .ck-dialog h2 {
+    font-size: 26px;
+  }
+
+  .ck-date {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .ck-dates {
+    gap: 8px;
+  }
+}
+
