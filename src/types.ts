@@ -23,8 +23,28 @@ export type Customer = {
   cashierId: string
   locale: Locale
   consentAt: string
+  points: number
+  rewards: number
   createdAt: string
   updatedAt: string
+}
+
+export type ReceiptRange = {
+  id: string
+  label: string
+  points: number
+  rewards: number
+}
+
+export type Receipt = {
+  id: string
+  customerId: string
+  rangeId: string
+  rangeLabel: string
+  points: number
+  rewards: number
+  cashierId: string | null
+  createdAt: string
 }
 
 export type AudienceKind = "customer" | "spirit" | "brand"
@@ -68,11 +88,13 @@ export type MessagingSettings = {
 }
 
 export type Database = {
-  version: 2
+  version: 3
   customers: Customer[]
   cashiers: Cashier[]
   brands: Brand[]
   campaigns: Campaign[]
+  ranges: ReceiptRange[]
+  receipts: Receipt[]
   activeCashierId: string | null
   messaging: MessagingSettings
 }

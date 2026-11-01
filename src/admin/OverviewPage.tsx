@@ -14,7 +14,7 @@ function localDay(iso: string) {
 }
 
 export default function OverviewPage() {
-  const { customers, cashiers } = useStore()
+  const { customers, cashiers, receipts } = useStore()
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
   const rangeStart = from && to && from > to ? to : from
@@ -39,6 +39,8 @@ export default function OverviewPage() {
   const cashierMax = Math.max(...cashierCounts.map((row) => row.count), 1)
   const cashierTotal = cashierCounts.reduce((sum, row) => sum + row.count, 0)
   const today = customers.filter((customer) => isSameDay(customer.createdAt)).length
+  const receiptsToday = receipts.filter((receipt) => isSameDay(receipt.createdAt))
+  const pointsToday = receiptsToday.reduce((sum, receipt) => sum + receipt.points, 0)
   const counts = SPIRITS.map((spirit) => ({
     spirit,
     count: guestsForSpirit(customers, spirit.id).length,
@@ -57,6 +59,8 @@ export default function OverviewPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Guests" value={String(customers.length)} />
         <Stat label="Joined today" value={String(today)} />
+        <Stat label="Receipts today" value={String(receiptsToday.length)} />
+        <Stat label="Points today" value={String(pointsToday)} />
         <Stat label="Most loved" value={top && top.count > 0 ? spiritName(top.spirit.id) : "—"} />
       </div>
 

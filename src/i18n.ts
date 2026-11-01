@@ -74,6 +74,20 @@ const en = {
   stepDrinks: "Drinks",
   stepBottles: "Bottles",
   stepConfirm: "Confirm",
+  alreadyRegistered: "Already registered?",
+  returnTitle: "Already registered?",
+  returnHint: "Enter the email or mobile number from your registration.",
+  returnField: "Email or mobile",
+  returnPlaceholder: "you@example.com or (555) 000 0000",
+  returnLookupError: "Add an email or a mobile number.",
+  returnNotFound: "We could not find that guest. Check the email or mobile, or register as a new guest.",
+  returnMany: "More than one guest matches. Ask at the office.",
+  receiptTitle: "Today's receipt",
+  receiptHello: "Hello",
+  receiptHint: "Choose the range that matches today's receipt.",
+  receiptEmpty: "No receipt ranges yet. Add them from the office.",
+  awardTitle: "Receipt saved",
+  awardTotals: "Your totals",
 }
 
 export type Copy = { [K in keyof typeof en]: string }
@@ -152,6 +166,42 @@ const es: Copy = {
   stepDrinks: "Bebidas",
   stepBottles: "Botellas",
   stepConfirm: "Confirmar",
+  alreadyRegistered: "¿Ya te registraste?",
+  returnTitle: "¿Ya te registraste?",
+  returnHint: "Escribe el correo o el celular de tu registro.",
+  returnField: "Correo o celular",
+  returnPlaceholder: "tu@ejemplo.com o (555) 000 0000",
+  returnLookupError: "Escribe un correo o un celular.",
+  returnNotFound: "No encontramos a ese invitado. Revisa el correo o el celular, o regístrate como nuevo.",
+  returnMany: "Hay más de un invitado. Pregunta en la oficina.",
+  receiptTitle: "Recibo de hoy",
+  receiptHello: "Hola",
+  receiptHint: "Elige el rango del recibo de hoy.",
+  receiptEmpty: "Todavía no hay rangos. Agrégalos desde la oficina.",
+  awardTitle: "Recibo guardado",
+  awardTotals: "Tus totales",
+}
+
+export function awardLine(locale: Locale, points: number, rewards: number) {
+  if (locale === "es") {
+    const pointLabel = points === 1 ? "punto" : "puntos"
+    const rewardLabel = rewards === 1 ? "recompensa" : "recompensas"
+    return `Sumamos ${points} ${pointLabel} y ${rewards} ${rewardLabel}.`
+  }
+  const pointLabel = points === 1 ? "point" : "points"
+  const rewardLabel = rewards === 1 ? "reward" : "rewards"
+  return `Added ${points} ${pointLabel} and ${rewards} ${rewardLabel}.`
+}
+
+export function totalsLine(locale: Locale, points: number, rewards: number) {
+  if (locale === "es") {
+    const pointLabel = points === 1 ? "punto" : "puntos"
+    const rewardLabel = rewards === 1 ? "recompensa" : "recompensas"
+    return `${points} ${pointLabel} · ${rewards} ${rewardLabel}`
+  }
+  const pointLabel = points === 1 ? "point" : "points"
+  const rewardLabel = rewards === 1 ? "reward" : "rewards"
+  return `${points} ${pointLabel} · ${rewards} ${rewardLabel}`
 }
 
 export const copy: Record<Locale, Copy> = { en, es }

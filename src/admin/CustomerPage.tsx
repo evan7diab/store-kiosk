@@ -1,13 +1,13 @@
 import { Link, useParams } from "react-router-dom"
 import { spiritName } from "../data/spirits"
 import { daysUntilBirthday, formatBirthday, formatStamp } from "../lib/dates"
-import { brandName, cashierName } from "../lib/people"
+import { brandName, cashierName, scoreText } from "../lib/people"
 import { useStore } from "../store"
 import { Tag } from "./AdminLayout"
 
 export default function CustomerPage() {
   const { id } = useParams()
-  const { customers, cashiers, brands } = useStore()
+  const { customers, cashiers, brands, receipts } = useStore()
   const customer = customers.find((item) => item.id === id)
 
   if (!customer) {
@@ -23,6 +23,9 @@ export default function CustomerPage() {
 
   const days = daysUntilBirthday(customer.birthday)
   const bottles = customer.brandIds.map((brandId) => brandName(brands, brandId))
+  const history = receipts
+    .filter((receipt) => receipt.customerId === customer.id)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   return (
     <div>
@@ -64,6 +67,8 @@ export default function CustomerPage() {
           <Info label="Mobile" value={customer.phone} />
           <Info label="Birthday" value={formatBirthday(customer.birthday)} />
           <Info label="Cashier" value={cashierName(cashiers, customer.cashierId)} />
+          <Info label="Points" value={String(customer.points)} />
+          <Info label="Rewards" value={String(customer.rewards)} />
           <Info label="Joined" value={formatStamp(customer.createdAt)} />
           <Info label="Consent" value={formatStamp(customer.consentAt)} />
         </dl>
@@ -85,6 +90,23 @@ export default function CustomerPage() {
           </ul>
         </div>
       </div>
+
+      <section className="mt-10">
+        <h2 className="font-display text-2xl">Receipts</h2>
+        {history.length === 0 ? <p className="mt-3 text-ink/50">No receipts yet.</p> : null}
+        <ul className="mt-3 divide-y divide-line border-y border-line">
+          {history.map((receipt) => (
+            <li key={receipt.id} className="grid gap-1 py-4 sm:grid-cols-[8rem_1fr_10rem] sm:items-baseline">
+              <span className="text-lg">{receipt.rangeLabel}</span>
+              <span className="text-sm text-ink/70">
+                {scoreText(receipt.points, receipt.rewards, true)}
+                {receipt.cashierId ? ` · ${cashierName(cashiers, receipt.cashierId)}` : ""}
+              </span>
+              <span className="text-sm text-ink/45 sm:text-right">{formatStamp(receipt.createdAt)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }

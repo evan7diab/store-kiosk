@@ -300,6 +300,28 @@
   align-items: center;
 }
 
+.ck-return {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  flex: none;
+  margin-top: 12px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.ck-return.on,
+.ck-return:hover {
+  color: #ffd5db;
+}
+
 .ck-shield {
   width: 40px;
   height: 40px;
@@ -618,6 +640,39 @@
   font-size: 11px;
   margin: 8px 0 0;
   flex: none;
+}
+
+.ck-return-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.ck-ranges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ck-range {
+  min-height: 88px;
+  border: 1px solid #dbe0e9;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--blue);
+  padding: 16px;
+  font-family: Outfit, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
+}
+
+.ck-range:hover {
+  border-color: var(--red);
+  background: #fff5f6;
 }
 
 .ck-picks {
@@ -1266,12 +1321,19 @@
   .ck-side {
     flex: none;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     max-height: none;
     padding: 10px 12px;
     gap: 10px;
     overflow: hidden;
+  }
+
+  .ck-return {
+    flex: 1 0 100%;
+    margin-top: 0;
+    font-size: 13px;
   }
 
   .ck-sidecontent {
