@@ -11,7 +11,7 @@ export default function BottlesPage() {
     <div>
       <PageHeader kicker="Sample shelf" title="Bottles" />
       <p className="max-w-xl text-ink/60">
-        These names are placeholders so the kiosk has something to tap. Replace them with the bottles you actually sell. The ten styles stay fixed.
+        The kiosk is not asking for bottles right now. These names stay here for the office. The six groups stay fixed.
       </p>
       <div className="mt-8 space-y-8">
         {SPIRITS.map((spirit) => {

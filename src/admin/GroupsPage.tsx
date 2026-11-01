@@ -16,7 +16,7 @@ function GroupGrid() {
     <div>
       <PageHeader kicker="Message a whole style" title="Groups" />
       <p className="max-w-xl text-ink/60">
-        Everyone who picked tequila, whiskey, or any other style. A guest can be in more than one.
+        Everyone who picked tequila, bourbon, or any other group. A guest can be in more than one.
       </p>
       <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {SPIRITS.map((spirit) => {

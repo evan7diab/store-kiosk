@@ -68,7 +68,7 @@ export type MessagingSettings = {
 }
 
 export type Database = {
-  version: 1
+  version: 2
   customers: Customer[]
   cashiers: Cashier[]
   brands: Brand[]

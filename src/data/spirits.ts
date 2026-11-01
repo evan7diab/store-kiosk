@@ -1,14 +1,10 @@
 export const SPIRITS = [
-  { id: "whiskey", en: "Whiskey", es: "Whiskey" },
   { id: "tequila", en: "Tequila", es: "Tequila" },
-  { id: "vodka", en: "Vodka", es: "Vodka" },
-  { id: "gin", en: "Gin", es: "Ginebra" },
-  { id: "rum", en: "Rum", es: "Ron" },
-  { id: "wine", en: "Wine", es: "Vino" },
-  { id: "champagne", en: "Champagne", es: "Champaña" },
-  { id: "beer", en: "Beer", es: "Cerveza" },
-  { id: "cognac", en: "Cognac", es: "Coñac" },
-  { id: "arak", en: "Arak", es: "Arak" },
+  { id: "bourbon", en: "Bourbon", es: "Bourbon" },
+  { id: "rtd", en: "Ready to drink cocktail", es: "Cóctel listo para tomar" },
+  { id: "red-wine", en: "Red wine", es: "Vino tinto" },
+  { id: "white-wine", en: "White wine", es: "Vino blanco" },
+  { id: "craft-beer", en: "Craft beer", es: "Cerveza artesanal" },
 ] as const
 
 export type SpiritId = (typeof SPIRITS)[number]["id"]

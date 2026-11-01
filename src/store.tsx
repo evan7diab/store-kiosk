@@ -11,7 +11,7 @@ function loadDatabase(): Database {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return seedDatabase()
     const parsed = JSON.parse(raw) as Database
-    if (parsed.version !== 1 || !Array.isArray(parsed.customers) || !Array.isArray(parsed.brands)) {
+    if (parsed.version !== 2 || !Array.isArray(parsed.customers) || !Array.isArray(parsed.brands)) {
       return seedDatabase()
     }
     return {

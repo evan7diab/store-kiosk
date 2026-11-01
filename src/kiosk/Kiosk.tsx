@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
 import { SPIRITS, type Locale, type SpiritId } from "../data/spirits"
+import { DrinkIcon } from "./drinkIcons"
 import { copy, MONTHS, nextGuestLabel } from "../i18n"
 import { daysInMonth, formatBirthdayShort, isAtLeastAge, isoBirthday, yearOptions } from "../lib/dates"
 import { initials, validEmail, validPhone } from "../lib/people"
@@ -15,7 +16,7 @@ function emailWithDomain(value: string, domain: string) {
   return `${local}${domain}`
 }
 
-type Step = "details" | "drinks" | "bottles" | "confirm" | "thanks"
+type Step = "details" | "drinks" | "confirm" | "thanks"
 type SheetMode = "browse" | "submit" | null
 
 type Draft = {
@@ -27,7 +28,6 @@ type Draft = {
   day: string
   year: string
   spiritIds: SpiritId[]
-  brandIds: string[]
 }
 
 const emptyDraft: Draft = {
@@ -39,10 +39,9 @@ const emptyDraft: Draft = {
   day: "",
   year: "",
   spiritIds: [],
-  brandIds: [],
 }
 
-const steps: Step[] = ["details", "drinks", "bottles", "confirm"]
+const steps: Step[] = ["details", "drinks", "confirm"]
 
 export default function Kiosk() {
   const store = useStore()
@@ -89,16 +88,13 @@ export default function Kiosk() {
   function finish(cashierId: string) {
     const birthday = isoBirthday(draft.year, draft.month, draft.day)
     if (!birthday) return
-    const allowed = new Set(
-      store.brands.filter((brand) => draft.spiritIds.includes(brand.spiritId)).map((brand) => brand.id),
-    )
     const status = store.addCustomer({
       name: `${draft.first.trim()} ${draft.last.trim()}`,
       email: draft.email,
       phone: draft.phone,
       birthday,
       spiritIds: SPIRITS.filter((spirit) => draft.spiritIds.includes(spirit.id)).map((spirit) => spirit.id),
-      brandIds: draft.brandIds.filter((id) => allowed.has(id)),
+      brandIds: [],
       cashierId,
       locale,
     })
@@ -114,26 +110,13 @@ export default function Kiosk() {
   }
 
   function toggleSpirit(id: SpiritId) {
-    setDraft((current) => {
-      const spiritIds = current.spiritIds.includes(id)
-        ? current.spiritIds.filter((spiritId) => spiritId !== id)
-        : [...current.spiritIds, id]
-      const brandIds = current.brandIds.filter((brandId) => {
-        const brand = store.brands.find((item) => item.id === brandId)
-        return brand ? spiritIds.includes(brand.spiritId) : false
-      })
-      return { ...current, spiritIds, brandIds }
-    })
-    setErrors({})
-  }
-
-  function toggleBrand(id: string) {
     setDraft((current) => ({
       ...current,
-      brandIds: current.brandIds.includes(id)
-        ? current.brandIds.filter((brandId) => brandId !== id)
-        : [...current.brandIds, id],
+      spiritIds: current.spiritIds.includes(id)
+        ? current.spiritIds.filter((spiritId) => spiritId !== id)
+        : [...current.spiritIds, id],
     }))
+    setErrors({})
   }
 
   function continueFromDetails() {
@@ -155,7 +138,7 @@ export default function Kiosk() {
       return
     }
     setErrors({})
-    setStep("bottles")
+    setStep("confirm")
   }
 
   function submit() {
@@ -179,12 +162,10 @@ export default function Kiosk() {
   const titles: Record<Exclude<Step, "thanks">, { title: string; hint: string }> = {
     details: { title: text.detailsTitle, hint: text.detailsHint },
     drinks: { title: text.drinksTitle, hint: text.drinksHint },
-    bottles: { title: text.bottlesTitle, hint: text.bottlesHint },
     confirm: { title: text.confirmTitle, hint: text.confirmHint },
   }
   const current = step === "thanks" ? null : titles[step]
-  const primaryLabel =
-    step === "confirm" ? text.complete : step === "bottles" && draft.brandIds.length === 0 ? text.skip : text.continue
+  const primaryLabel = step === "confirm" ? text.complete : text.continue
 
   return (
     <div className="ck">
@@ -260,9 +241,6 @@ export default function Kiosk() {
                 {step === "drinks" ? (
                   <DrinksStep locale={locale} selected={draft.spiritIds} error={errors.drinks} onToggle={toggleSpirit} />
                 ) : null}
-                {step === "bottles" ? (
-                  <BottlesStep locale={locale} spiritIds={draft.spiritIds} brandIds={draft.brandIds} onToggle={toggleBrand} />
-                ) : null}
                 {step === "confirm" ? (
                   <ConfirmStep
                     locale={locale}
@@ -296,7 +274,6 @@ export default function Kiosk() {
                     onClick={() => {
                       if (step === "details") continueFromDetails()
                       else if (step === "drinks") continueFromDrinks()
-                      else if (step === "bottles") setStep("confirm")
                       else submit()
                     }}
                   >
@@ -513,52 +490,15 @@ function DrinksStep({
           const on = selected.includes(spirit.id)
           return (
             <button key={spirit.id} type="button" aria-pressed={on} className={on ? "ck-pick on" : "ck-pick"} onClick={() => onToggle(spirit.id)}>
-              {spirit[locale]}
+              <span className="ck-pick-icon">
+                <DrinkIcon id={spirit.id} />
+              </span>
+              <span className="ck-pick-name">{spirit[locale]}</span>
             </button>
           )
         })}
       </div>
       {error ? <div className="ck-err show">{error}</div> : null}
-    </>
-  )
-}
-
-function BottlesStep({
-  locale,
-  spiritIds,
-  brandIds,
-  onToggle,
-}: {
-  locale: Locale
-  spiritIds: SpiritId[]
-  brandIds: string[]
-  onToggle: (id: string) => void
-}) {
-  const text = copy[locale]
-  const { brands } = useStore()
-  const chosen = SPIRITS.filter((spirit) => spiritIds.includes(spirit.id))
-
-  return (
-    <>
-      {chosen.map((spirit) => {
-        const options = brands.filter((brand) => brand.spiritId === spirit.id)
-        return (
-          <section key={spirit.id} className="ck-group">
-            <h3>{spirit[locale]}</h3>
-            {options.length === 0 ? <p className="ck-intro">{text.noneListed}</p> : null}
-            <div className="ck-chips">
-              {options.map((brand) => {
-                const on = brandIds.includes(brand.id)
-                return (
-                  <button key={brand.id} type="button" aria-pressed={on} className={on ? "ck-chip on" : "ck-chip"} onClick={() => onToggle(brand.id)}>
-                    {brand.name}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-        )
-      })}
     </>
   )
 }
@@ -585,10 +525,8 @@ function ConfirmStep({
   onCashier: () => void
 }) {
   const text = copy[locale]
-  const { brands } = useStore()
   const birthday = isoBirthday(draft.year, draft.month, draft.day)
   const drinks = SPIRITS.filter((spirit) => draft.spiritIds.includes(spirit.id))
-  const picked = brands.filter((brand) => draft.brandIds.includes(brand.id))
 
   return (
     <>
@@ -614,10 +552,6 @@ function ConfirmStep({
         <div>
           <dt>{text.stepDrinks}</dt>
           <dd>{drinks.map((spirit) => spirit[locale]).join(", ")}</dd>
-        </div>
-        <div>
-          <dt>{text.stepBottles}</dt>
-          <dd>{picked.length ? picked.map((brand) => brand.name).join(", ") : text.noBottles}</dd>
         </div>
         <div>
           <dt>{text.signedWith}</dt>
@@ -650,6 +584,10 @@ function ConfirmStep({
   )
 }
 
+const RESET_SECONDS = 10
+const RING_RADIUS = 42
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS
+
 function Success({
   locale,
   result,
@@ -662,11 +600,15 @@ function Success({
   onDone: () => void
 }) {
   const text = copy[locale]
-  const [left, setLeft] = useState(10)
+  const [left, setLeft] = useState(RESET_SECONDS)
 
   useEffect(() => {
-    const tick = window.setInterval(() => setLeft((value) => value - 1), 1000)
-    const done = window.setTimeout(onDone, 10000)
+    const started = performance.now()
+    const tick = window.setInterval(() => {
+      const remaining = RESET_SECONDS * 1000 - (performance.now() - started)
+      setLeft(Math.max(0, Math.ceil(remaining / 1000)))
+    }, 200)
+    const done = window.setTimeout(onDone, RESET_SECONDS * 1000)
     return () => {
       window.clearInterval(tick)
       window.clearTimeout(done)
@@ -674,22 +616,38 @@ function Success({
   }, [onDone])
 
   const headline = result === "updated" ? text.thanksUpdated : text.welcomeAboard
+  const seconds = Math.max(left, 0)
 
   return (
-    <div className="ck-success" aria-live="polite">
-      <div className="ck-check">✓</div>
-      <div className="ck-eyebrow" style={{ color: "#cf2034" }}>
-        {text.thanksEyebrow}
+    <div className="ck-success">
+      <div className="ck-check" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path d="M14 25.2 21.2 32.2 34.8 16.8" />
+        </svg>
       </div>
+      <p className="ck-success-kicker">{text.thanksEyebrow}</p>
       <h2>{headline}</h2>
-      <p>
+      <p className="ck-success-copy">
         {name ? `${name}, ` : ""}
         {text.thanksSub}
       </p>
-      <button type="button" className="ck-primary" onClick={onDone}>
-        {text.registerAnother} →
+      <div
+        className="ck-timer"
+        role="timer"
+        aria-label={nextGuestLabel(locale, seconds)}
+        style={{ ["--ck-circ" as string]: RING_LENGTH, ["--ck-reset" as string]: `${RESET_SECONDS}s` }}
+      >
+        <svg viewBox="0 0 108 108" aria-hidden="true">
+          <circle className="ck-timer-track" cx="54" cy="54" r={RING_RADIUS} />
+          <circle className="ck-timer-value" cx="54" cy="54" r={RING_RADIUS} />
+        </svg>
+        <span className="ck-timer-num">{seconds}</span>
+      </div>
+      <p className="ck-timer-label">{text.nextGuest}</p>
+      <button type="button" className="ck-done" onClick={onDone}>
+        {text.registerAnother}
+        <span aria-hidden="true">→</span>
       </button>
-      <p className="ck-micro">{nextGuestLabel(locale, Math.max(left, 0))}</p>
     </div>
   )
 }

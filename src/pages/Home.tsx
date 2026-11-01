@@ -35,7 +35,7 @@ export default function Home() {
           <div className="home-copy">
             <p className="home-kicker">In the office</p>
             <h1>The desk</h1>
-            <p>Look up a guest, message everyone who drinks tequila, or everyone who drinks whiskey.</p>
+            <p>Look up a guest, message everyone who drinks tequila, or everyone who drinks bourbon.</p>
             <Link to="/admin" className="home-btn home-btn-red">
               Open the dashboard
             </Link>

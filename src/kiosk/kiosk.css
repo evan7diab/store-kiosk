@@ -518,23 +518,30 @@
 .ck-choice {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
   margin: 9px 0 15px;
   color: #536176;
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .ck-choice input {
-  width: 18px;
-  height: 18px;
+  appearance: none;
+  width: 32px;
+  height: 32px;
   flex: none;
-  margin: 2px 0;
-  accent-color: var(--red);
+  margin: 0;
   padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
+  border: 2px solid #cfd6e2;
+  border-radius: 8px;
+  background: #fff center / 18px 18px no-repeat;
+  accent-color: var(--red);
+}
+
+.ck-choice input:checked {
+  border-color: var(--red);
+  background-color: var(--red);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M4 9.2 7.2 12.4 14 5.6' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 .ck-choice a {
@@ -552,20 +559,39 @@
 }
 
 .ck-primary {
-  background: var(--red);
+  background: linear-gradient(180deg, #e43346 0%, #cf2034 52%, #b81c2d 100%);
   color: white;
   border: none;
-  padding: 18px 24px;
-  border-radius: 11px;
-  font-size: 14px;
-  font-weight: 800;
+  padding: 18px 26px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   min-height: 56px;
-  box-shadow: 0 8px 18px #cf203429;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 28%),
+    0 10px 22px rgb(207 32 52 / 28%);
   flex: 1;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
 }
 
 .ck-primary:hover {
-  background: var(--reddeep);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 34%),
+    0 14px 26px rgb(207 32 52 / 34%);
+}
+
+.ck-primary:active {
+  filter: brightness(0.98);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    0 6px 12px rgb(207 32 52 / 24%);
 }
 
 .ck-secondary {
@@ -573,9 +599,17 @@
   color: var(--blue);
   border: 1px solid var(--line);
   padding: 15px 22px;
-  border-radius: 11px;
+  border-radius: 16px;
   font-weight: 700;
   min-height: 56px;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.ck-secondary:hover {
+  border-color: #c5cedb;
+  background: #f7f9fc;
 }
 
 .ck-micro {
@@ -588,22 +622,48 @@
 
 .ck-picks {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   margin-bottom: 8px;
 }
 
 .ck-pick {
-  min-height: 64px;
+  min-height: 140px;
   border: 1px solid #dbe0e9;
-  border-radius: 11px;
+  border-radius: 16px;
   background: #fff;
   color: var(--ink);
   text-align: left;
-  padding: 14px 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   font-family: Outfit, sans-serif;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
+  line-height: 1.15;
+}
+
+.ck-pick-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #f3f6fb;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+}
+
+.ck-pick-icon svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.ck-pick-name {
+  display: block;
 }
 
 .ck-pick.on {
@@ -611,6 +671,11 @@
   background: #fff5f6;
   color: var(--blue);
   box-shadow: inset 0 0 0 1px var(--red);
+}
+
+.ck-pick.on .ck-pick-icon {
+  background: var(--red);
+  color: #fff;
 }
 
 .ck-group {
@@ -685,6 +750,7 @@
 }
 
 .ck-success {
+  position: relative;
   text-align: center;
   display: flex;
   align-items: center;
@@ -692,36 +758,228 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  animation: ck-rise 0.45s ease;
+}
+
+.ck-success::before {
+  content: "";
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(20 131 91 / 10%), transparent 68%);
+  top: 6%;
+  pointer-events: none;
 }
 
 .ck-check {
-  width: 100px;
-  height: 100px;
+  position: relative;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  background: #e9f7f0;
+  background: radial-gradient(circle at 35% 28%, #fff, #f4fbf8 42%, #e7f6ee 100%);
   color: #14835b;
   display: grid;
   place-items: center;
-  font-size: 44px;
-  margin-bottom: 20px;
+  box-shadow:
+    0 0 0 10px rgb(20 131 91 / 8%),
+    0 14px 30px rgb(20 131 91 / 16%);
+  animation: ck-pop 0.5s cubic-bezier(0.2, 0.85, 0.2, 1);
+}
+
+.ck-check svg {
+  width: 44px;
+  height: 44px;
+}
+
+.ck-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: ck-draw 0.45s 0.18s ease forwards;
+}
+
+.ck-success-kicker {
+  position: relative;
+  margin: 18px 0 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--red);
 }
 
 .ck-success h2 {
-  font-size: 43px;
-  margin-top: 8px;
+  position: relative;
+  font-size: clamp(32px, 3vw, 42px);
+  margin: 6px 0 0;
 }
 
-.ck-success p {
+.ck-success-copy {
+  position: relative;
   color: var(--muted);
   max-width: 420px;
-  line-height: 1.7;
-  margin: 0;
+  line-height: 1.6;
+  margin: 8px 0 0;
+  font-size: 15px;
 }
 
-.ck-success .ck-primary {
-  margin-top: 25px;
-  width: 260px;
-  flex: unset;
+.ck-timer {
+  --ck-circ: 263.894;
+  --ck-reset: 10s;
+  position: relative;
+  width: 108px;
+  height: 108px;
+  margin-top: 22px;
+}
+
+.ck-timer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ck-timer-track,
+.ck-timer-value {
+  fill: none;
+  stroke-width: 6;
+}
+
+.ck-timer-track {
+  stroke: #e6ebf2;
+}
+
+.ck-timer-value {
+  stroke: var(--red);
+  stroke-linecap: round;
+  stroke-dasharray: var(--ck-circ);
+  stroke-dashoffset: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  animation: ck-drain var(--ck-reset) linear forwards;
+}
+
+.ck-timer-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: Outfit, sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--blue);
+}
+
+.ck-timer-label {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ck-done {
+  margin-top: 20px;
+  min-height: 56px;
+  padding: 0 8px 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ee3d50 0%, #cf2034 46%, #b31a2b 100%);
+  color: #fff;
+  font-family: Outfit, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 32%),
+    0 12px 28px rgb(207 32 52 / 32%);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+}
+
+.ck-done span {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 16%);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+
+.ck-done:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 38%),
+    0 16px 32px rgb(207 32 52 / 38%);
+}
+
+.ck-done:active {
+  filter: brightness(0.98);
+  transform: translateY(1px) scale(0.99);
+}
+
+@keyframes ck-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ck-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ck-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ck-drain {
+  to {
+    stroke-dashoffset: var(--ck-circ);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-success,
+  .ck-check,
+  .ck-check path,
+  .ck-timer-value,
+  .ck-primary,
+  .ck-done {
+    animation: none;
+    transition: none;
+  }
+
+  .ck-check path {
+    stroke-dashoffset: 0;
+  }
 }
 
 .ck-footer {
@@ -959,7 +1217,10 @@
     padding: 25px 21px;
   }
 
-  .ck-picks,
+  .ck-picks {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .ck-cashiers,
   .ck-summary div {
     grid-template-columns: 1fr;
