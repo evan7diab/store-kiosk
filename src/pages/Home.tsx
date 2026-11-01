@@ -11,7 +11,7 @@ export default function Home() {
       <div className="home-shell">
         <section className="home-kiosk">
           <div className="home-brand">
-            <img src="/brand/clown-face.png" alt="" />
+            <img src={`${import.meta.env.BASE_URL}brand/clown-face.png`} alt="" />
             <span>
               <strong>CIRCUS LIQUOR</strong>
               <small>Since 1959 · California</small>
@@ -28,7 +28,7 @@ export default function Home() {
           <p className="home-foot">
             {customers.length} {customers.length === 1 ? "guest" : "guests"} in this browser
           </p>
-          <img className="home-mascot" src="/brand/mascot.png" alt="" />
+          <img className="home-mascot" src={`${import.meta.env.BASE_URL}brand/mascot.png`} alt="" />
         </section>
         <section className="home-desk">
           <div />

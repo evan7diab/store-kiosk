@@ -13,10 +13,12 @@ import Kiosk from "./kiosk/Kiosk"
 import Home from "./pages/Home"
 import { StoreProvider } from "./store"
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "")
+
 export default function App() {
   return (
     <StoreProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/kiosk" element={<Kiosk />} />

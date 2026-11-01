@@ -20,7 +20,7 @@ export default function AdminLayout() {
         <aside className="bg-ink text-cream lg:sticky lg:top-[9px] lg:flex lg:h-[calc(100dvh-9px)] lg:flex-col lg:justify-between">
           <div>
             <div className="flex items-center gap-3 px-5 py-6">
-              <img src="/brand/clown-face.png" alt="" className="h-12 w-auto" />
+              <img src={`${import.meta.env.BASE_URL}brand/clown-face.png`} alt="" className="h-12 w-auto" />
               <span className="flex flex-col leading-none">
                 <strong className="font-display text-lg tracking-[0.04em] text-cream">CIRCUS LIQUOR</strong>
                 <small className="mt-1.5 text-[9px] font-bold tracking-[0.22em] text-brass uppercase">

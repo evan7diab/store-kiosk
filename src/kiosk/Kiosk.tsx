@@ -191,7 +191,7 @@ export default function Kiosk() {
       <div className="ck-top" />
       <header className="ck-head">
         <div className="ck-logo">
-          <img className="ck-face" src="/brand/clown-face.png" alt="" />
+          <img className="ck-face" src={`${import.meta.env.BASE_URL}brand/clown-face.png`} alt="" />
           <span className="ck-brand">
             <strong>CIRCUS LIQUOR</strong>
             <small>{locale === "es" ? "Desde 1959 · California" : "Since 1959 · California"}</small>
@@ -227,7 +227,7 @@ export default function Kiosk() {
                 <div className="ck-sep" />
                 <p>{text.sideBody}</p>
               </div>
-              <img className="ck-mascot" src="/brand/mascot.png" alt="Circus Liquor" />
+              <img className="ck-mascot" src={`${import.meta.env.BASE_URL}brand/mascot.png`} alt="Circus Liquor" />
             </div>
             <div className="ck-sidefoot">
               <div className="ck-shield">♧</div>
