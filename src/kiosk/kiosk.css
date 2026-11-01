@@ -107,6 +107,7 @@
 }
 
 .ck-lang button {
+  position: relative;
   border: 0;
   background: transparent;
   color: #fff;
@@ -118,17 +119,27 @@
   letter-spacing: 0.01em;
 }
 
-.ck-lang button.active {
-  color: var(--blue);
+.ck-lang-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
   background: #fff;
+  z-index: 0;
+}
+
+.ck-lang-label {
+  position: relative;
+  z-index: 1;
+}
+
+.ck-lang button.active,
+.ck-lang button.active:hover {
+  color: var(--blue);
+  background: transparent;
 }
 
 .ck-lang button:hover {
   background: rgb(255 255 255 / 16%);
-}
-
-.ck-lang button.active:hover {
-  background: #fff;
 }
 
 .ck-pill {
@@ -320,6 +331,29 @@
   padding: 22px clamp(20px, 3vw, 48px) 16px;
 }
 
+.ck-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ck-flow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ck-step {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .ck-progress {
   display: flex;
   align-items: center;
@@ -409,6 +443,7 @@
 }
 
 .ck-domains button {
+  position: relative;
   border: 1px solid #dbe0e9;
   background: #f4f6fa;
   color: var(--blue);
@@ -418,10 +453,22 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
-.ck-domains button.active {
+.ck-domain-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
   background: var(--blue);
+  z-index: 0;
+}
+
+.ck-domains button.active,
+.ck-domains button.active:hover {
+  background: transparent;
   border-color: var(--blue);
   color: #fff;
 }
@@ -504,15 +551,13 @@
 }
 
 .ck-err {
-  display: none;
+  display: block;
   color: var(--reddeep);
   font-size: 11px;
-  margin-top: 5px;
 }
 
-.ck-field.haserror .ck-err,
-.ck-err.show {
-  display: block;
+.ck-err-text {
+  padding-top: 5px;
 }
 
 .ck-choice {
@@ -536,6 +581,14 @@
   border-radius: 8px;
   background: #fff center / 18px 18px no-repeat;
   accent-color: var(--red);
+  transition:
+    transform 0.12s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.ck-choice input:active {
+  transform: scale(0.94);
 }
 
 .ck-choice input:checked {
@@ -644,6 +697,11 @@
   font-size: 17px;
   font-weight: 700;
   line-height: 1.15;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
 }
 
 .ck-pick-icon {
@@ -654,6 +712,9 @@
   color: var(--blue);
   display: grid;
   place-items: center;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .ck-pick-icon svg {
@@ -758,7 +819,6 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  animation: ck-rise 0.45s ease;
 }
 
 .ck-success::before {
@@ -932,17 +992,6 @@
   transform: translateY(1px) scale(0.99);
 }
 
-@keyframes ck-rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 @keyframes ck-pop {
   from {
     opacity: 0;
@@ -972,7 +1021,13 @@
   .ck-check path,
   .ck-timer-value,
   .ck-primary,
-  .ck-done {
+  .ck-done,
+  .ck-pick,
+  .ck-pick-icon,
+  .ck-domains button,
+  .ck-choice input,
+  .ck-date,
+  .ck-cashier {
     animation: none;
     transition: none;
   }
@@ -1044,6 +1099,10 @@
   text-align: left;
   font-weight: 700;
   color: var(--ink);
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
 }
 
 .ck-cashier.on {
@@ -1116,6 +1175,15 @@
   font-family: Outfit, sans-serif;
   font-size: 18px;
   font-weight: 700;
+  transition:
+    transform 0.12s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.ck-date:active {
+  transform: scale(0.98);
 }
 
 .ck-date.on {

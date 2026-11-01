@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
+import { createPortal } from "react-dom"
+import { AnimatePresence, MotionConfig, motion, type Transition } from "motion/react"
 import { SPIRITS, type Locale, type SpiritId } from "../data/spirits"
 import { DrinkIcon } from "./drinkIcons"
 import { copy, MONTHS, nextGuestLabel } from "../i18n"
@@ -42,28 +44,42 @@ const emptyDraft: Draft = {
 }
 
 const steps: Step[] = ["details", "drinks", "confirm"]
+const flowOrder: Step[] = ["details", "drinks", "confirm", "thanks"]
+
+const settle: Transition = { type: "spring", bounce: 0, visualDuration: 0.28 }
+const fade: Transition = { duration: 0.2, ease: "easeOut" }
+
+const stepShift = {
+  enter: (dir: number) => ({ opacity: 0, x: dir * 28 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir * -28 }),
+}
+
+const KioskPortalContext = createContext<HTMLElement | null>(null)
 
 export default function Kiosk() {
   const store = useStore()
   const [locale, setLocale] = useState<Locale>("en")
   const [step, setStep] = useState<Step>("details")
+  const [direction, setDirection] = useState(1)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [sheet, setSheet] = useState<SheetMode>(null)
   const [consent, setConsent] = useState(false)
   const [ofAge, setOfAge] = useState(false)
   const [result, setResult] = useState<"created" | "updated">("created")
+  const [portal, setPortal] = useState<HTMLDivElement | null>(null)
   const text = copy[locale]
   const activeCashier = store.cashiers.find((cashier) => cashier.id === store.activeCashierId && cashier.active)
-  const stepsRef = useRef<HTMLDivElement>(null)
+
+  function goTo(next: Step) {
+    setDirection(flowOrder.indexOf(next) >= flowOrder.indexOf(step) ? 1 : -1)
+    setStep(next)
+  }
 
   useEffect(() => {
     document.documentElement.lang = locale
   }, [locale])
-
-  useEffect(() => {
-    stepsRef.current?.scrollTo(0, 0)
-  }, [step])
 
   useEffect(() => {
     const root = document.documentElement
@@ -81,6 +97,7 @@ export default function Kiosk() {
     setErrors({})
     setConsent(false)
     setOfAge(false)
+    setDirection(-1)
     setStep("details")
     setSheet(null)
   }, [])
@@ -99,7 +116,7 @@ export default function Kiosk() {
       locale,
     })
     setResult(status)
-    setStep("thanks")
+    goTo("thanks")
   }
 
   function pickCashier(id: string) {
@@ -129,7 +146,7 @@ export default function Kiosk() {
     if (!birthday) nextErrors.birthday = text.birthdayError
     else if (!isAtLeastAge(birthday, 21)) nextErrors.birthday = text.ageError
     setErrors(nextErrors)
-    if (Object.keys(nextErrors).length === 0) setStep("drinks")
+    if (Object.keys(nextErrors).length === 0) goTo("drinks")
   }
 
   function continueFromDrinks() {
@@ -138,7 +155,7 @@ export default function Kiosk() {
       return
     }
     setErrors({})
-    setStep("confirm")
+    goTo("confirm")
   }
 
   function submit() {
@@ -168,7 +185,9 @@ export default function Kiosk() {
   const primaryLabel = step === "confirm" ? text.complete : text.continue
 
   return (
-    <div className="ck">
+    <MotionConfig reducedMotion="user">
+    <KioskPortalContext.Provider value={portal}>
+    <div className="ck" ref={setPortal}>
       <div className="ck-top" />
       <header className="ck-head">
         <div className="ck-logo">
@@ -188,12 +207,12 @@ export default function Kiosk() {
         <section className="ck-kiosk">
           <aside className="ck-side">
             <div className="ck-lang" role="group" aria-label={locale === "es" ? "Idioma" : "Language"}>
-              <button type="button" className={locale === "en" ? "active" : ""} onClick={() => setLocale("en")}>
-                English
-              </button>
-              <button type="button" className={locale === "es" ? "active" : ""} onClick={() => setLocale("es")}>
-                Español
-              </button>
+              {(["en", "es"] as const).map((code) => (
+                <button key={code} type="button" className={locale === code ? "active" : ""} onClick={() => setLocale(code)}>
+                  {locale === code ? <motion.span layoutId="ck-locale" className="ck-lang-pill" transition={settle} /> : null}
+                  <span className="ck-lang-label">{code === "en" ? "English" : "Español"}</span>
+                </button>
+              ))}
             </div>
             <div className="ck-sidecontent">
               <div className="ck-eyebrow">{text.sideEyebrow}</div>
@@ -221,86 +240,129 @@ export default function Kiosk() {
           </aside>
 
           <div className="ck-panel">
-            {step === "thanks" ? (
-              <Success locale={locale} result={result} name={draft.first.trim()} onDone={reset} />
-            ) : (
-              <>
-                <div className="ck-progress">
-                  {text.progress}
-                  <span className="ck-count">
-                    {String(stepIndex + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
-                  </span>
-                  <div className="ck-bar">
-                    <i style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+            <AnimatePresence mode="wait" initial={false}>
+              {step === "thanks" ? (
+                <motion.div
+                  key="thanks"
+                  className="ck-stage"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={fade}
+                >
+                  <Success locale={locale} result={result} name={draft.first.trim()} onDone={reset} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="flow"
+                  className="ck-stage"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={fade}
+                >
+                  <div className="ck-progress">
+                    {text.progress}
+                    <span className="ck-count">
+                      {String(stepIndex + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
+                    </span>
+                    <div className="ck-bar">
+                      <motion.i
+                        initial={false}
+                        animate={{ scaleX: (stepIndex + 1) / steps.length }}
+                        transition={settle}
+                        style={{ width: "100%", originX: 0 }}
+                      />
+                    </div>
                   </div>
-                </div>
-                <h2>{current?.title}</h2>
-                <p className="ck-intro">{current?.hint}</p>
-                <div className="ck-steps" ref={stepsRef}>
-                {step === "details" ? <DetailsStep locale={locale} draft={draft} setDraft={setDraft} errors={errors} /> : null}
-                {step === "drinks" ? (
-                  <DrinksStep locale={locale} selected={draft.spiritIds} error={errors.drinks} onToggle={toggleSpirit} />
-                ) : null}
-                {step === "confirm" ? (
-                  <ConfirmStep
-                    locale={locale}
-                    draft={draft}
-                    cashier={activeCashier}
-                    consent={consent}
-                    ofAge={ofAge}
-                    error={errors.confirm}
-                    onConsent={setConsent}
-                    onAge={setOfAge}
-                    onCashier={() => setSheet("browse")}
-                  />
-                ) : null}
-                </div>
+                  <div className="ck-flow">
+                    <AnimatePresence mode="wait" custom={direction} initial={false}>
+                      <motion.div
+                        key={step}
+                        className="ck-step"
+                        custom={direction}
+                        variants={stepShift}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={settle}
+                      >
+                        <h2>{current?.title}</h2>
+                        <p className="ck-intro">{current?.hint}</p>
+                        <div className="ck-steps">
+                          {step === "details" ? <DetailsStep locale={locale} draft={draft} setDraft={setDraft} errors={errors} /> : null}
+                          {step === "drinks" ? (
+                            <DrinksStep locale={locale} selected={draft.spiritIds} error={errors.drinks} onToggle={toggleSpirit} />
+                          ) : null}
+                          {step === "confirm" ? (
+                            <ConfirmStep
+                              locale={locale}
+                              draft={draft}
+                              cashier={activeCashier}
+                              consent={consent}
+                              ofAge={ofAge}
+                              error={errors.confirm}
+                              onConsent={setConsent}
+                              onAge={setOfAge}
+                              onCashier={() => setSheet("browse")}
+                            />
+                          ) : null}
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
 
-                <div className="ck-action">
-                  <button
-                    type="button"
-                    className="ck-secondary"
-                    onClick={() => {
-                      setErrors({})
-                      if (step === "details") reset()
-                      else setStep(steps[stepIndex - 1] ?? "details")
-                    }}
-                  >
-                    {step === "details" ? text.clear : text.back}
-                  </button>
-                  <button
-                    type="button"
-                    className="ck-primary"
-                    onClick={() => {
-                      if (step === "details") continueFromDetails()
-                      else if (step === "drinks") continueFromDrinks()
-                      else submit()
-                    }}
-                  >
-                    {primaryLabel} &nbsp; →
-                  </button>
-                </div>
-                <p className="ck-micro">
-                  {locale === "es" ? "Paso " : "Step "}
-                  {stepIndex + 1} / {steps.length}
-                </p>
-              </>
-            )}
+                  <div className="ck-action">
+                    <button
+                      type="button"
+                      className="ck-secondary"
+                      onClick={() => {
+                        setErrors({})
+                        if (step === "details") reset()
+                        else goTo(steps[stepIndex - 1] ?? "details")
+                      }}
+                    >
+                      {step === "details" ? text.clear : text.back}
+                    </button>
+                    <button
+                      type="button"
+                      className="ck-primary"
+                      onClick={() => {
+                        if (step === "details") continueFromDetails()
+                        else if (step === "drinks") continueFromDrinks()
+                        else submit()
+                      }}
+                    >
+                      {primaryLabel} &nbsp; →
+                    </button>
+                  </div>
+                  <p className="ck-micro">
+                    {locale === "es" ? "Paso " : "Step "}
+                    {stepIndex + 1} / {steps.length}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
         <div className="ck-footer">CIRCUS LIQUOR · KIOSK · 2026</div>
       </main>
 
-      {sheet ? (
-        <CashierSheet
-          locale={locale}
-          cashiers={store.cashiers.filter((cashier) => cashier.active)}
-          selectedId={store.activeCashierId}
-          onClose={() => setSheet(null)}
-          onPick={pickCashier}
-        />
-      ) : null}
+      <AnimatePresence>
+        {sheet ? (
+          <CashierSheet
+            key="cashiers"
+            locale={locale}
+            cashiers={store.cashiers.filter((cashier) => cashier.active)}
+            selectedId={store.activeCashierId}
+            onClose={() => setSheet(null)}
+            onPick={pickCashier}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
+    </KioskPortalContext.Provider>
+    </MotionConfig>
   )
 }
 
@@ -403,7 +465,8 @@ function DetailsStep({
               className={selectedDomain === domain ? "active" : ""}
               onClick={() => chooseDomain(domain)}
             >
-              {domain}
+              {selectedDomain === domain ? <motion.span layoutId="ck-domain" className="ck-domain-pill" transition={settle} /> : null}
+              <span className="ck-lang-label">{domain}</span>
             </button>
           ))}
         </div>
@@ -449,25 +512,28 @@ function DetailsStep({
             {draft.year || text.year}
           </button>
         </div>
-        <div className="ck-err">{errors.birthday}</div>
+        <ErrorNote message={errors.birthday} />
       </div>
-      {picker ? (
-        <DateSheet
-          part={picker}
-          locale={locale}
-          value={picker === "month" ? draft.month : picker === "day" ? draft.day : draft.year}
-          years={years}
-          dayCount={dayCount}
-          onClose={() => setPicker(null)}
-          onPick={(value) => {
-            if (picker === "month") chooseMonth(value)
-            else if (picker === "day") {
-              set("day", value)
-              setPicker(null)
-            } else chooseYear(value)
-          }}
-        />
-      ) : null}
+      <AnimatePresence>
+        {picker ? (
+          <DateSheet
+            key={picker}
+            part={picker}
+            locale={locale}
+            value={picker === "month" ? draft.month : picker === "day" ? draft.day : draft.year}
+            years={years}
+            dayCount={dayCount}
+            onClose={() => setPicker(null)}
+            onPick={(value) => {
+              if (picker === "month") chooseMonth(value)
+              else if (picker === "day") {
+                set("day", value)
+                setPicker(null)
+              } else chooseYear(value)
+            }}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   )
 }
@@ -489,16 +555,24 @@ function DrinksStep({
         {SPIRITS.map((spirit) => {
           const on = selected.includes(spirit.id)
           return (
-            <button key={spirit.id} type="button" aria-pressed={on} className={on ? "ck-pick on" : "ck-pick"} onClick={() => onToggle(spirit.id)}>
+            <motion.button
+              key={spirit.id}
+              type="button"
+              aria-pressed={on}
+              className={on ? "ck-pick on" : "ck-pick"}
+              onClick={() => onToggle(spirit.id)}
+              whileTap={{ scale: 0.97 }}
+              transition={settle}
+            >
               <span className="ck-pick-icon">
                 <DrinkIcon id={spirit.id} />
               </span>
               <span className="ck-pick-name">{spirit[locale]}</span>
-            </button>
+            </motion.button>
           )
         })}
       </div>
-      {error ? <div className="ck-err show">{error}</div> : null}
+      <ErrorNote message={error} />
     </>
   )
 }
@@ -575,11 +649,7 @@ function ConfirmStep({
           {text.age} <span className="ck-req">*</span>
         </span>
       </label>
-      {error ? (
-        <div className="ck-err show" role="alert">
-          {error}
-        </div>
-      ) : null}
+      <ErrorNote message={error} />
     </>
   )
 }
@@ -688,39 +758,35 @@ function DateSheet({
     return () => window.removeEventListener("keydown", onKey)
   }, [onClose])
 
-  return (
-    <div className="ck-sheet" role="presentation" onClick={onClose}>
-      <div
-        className="ck-dialog ck-date-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="date-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <h2 id="date-title">{title}</h2>
-        <div className={`ck-dates ${part}`}>
-          {options.map((option) => {
-            const on = option.value === value
-            return (
-              <button
-                key={option.value}
-                ref={on ? selectedRef : undefined}
-                type="button"
-                className={on ? "ck-date on" : "ck-date"}
-                onClick={() => onPick(option.value)}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
-        <div className="ck-action">
-          <button type="button" className="ck-secondary" onClick={onClose}>
-            {text.close}
-          </button>
-        </div>
+  const portal = useContext(KioskPortalContext)
+  if (!portal) return null
+
+  return createPortal(
+    <SheetSurface labelledBy="date-title" className="ck-date-dialog" onClose={onClose}>
+      <h2 id="date-title">{title}</h2>
+      <div className={`ck-dates ${part}`}>
+        {options.map((option) => {
+          const on = option.value === value
+          return (
+            <button
+              key={option.value}
+              ref={on ? selectedRef : undefined}
+              type="button"
+              className={on ? "ck-date on" : "ck-date"}
+              onClick={() => onPick(option.value)}
+            >
+              {option.label}
+            </button>
+          )
+        })}
       </div>
-    </div>
+      <div className="ck-action">
+        <button type="button" className="ck-secondary" onClick={onClose}>
+          {text.close}
+        </button>
+      </div>
+    </SheetSurface>,
+    portal,
   )
 }
 
@@ -747,38 +813,41 @@ function CashierSheet({
     return () => window.removeEventListener("keydown", onKey)
   }, [onClose])
 
-  return (
-    <div className="ck-sheet" role="presentation" onClick={onClose}>
-      <div
-        className="ck-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cashier-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <h2 id="cashier-title">{text.chooseCashier}</h2>
-        <p>{text.chooseCashierHint}</p>
-        {cashiers.length === 0 ? (
-          <p>{locale === "es" ? "Agrega cajeros desde la oficina." : "Add cashiers from the office dashboard."}</p>
-        ) : null}
-        <div className="ck-cashiers">
-          {cashiers.map((cashier) => {
-            const on = cashier.id === selectedId
-            return (
-              <button key={cashier.id} type="button" className={on ? "ck-cashier on" : "ck-cashier"} onClick={() => onPick(cashier.id)}>
-                <span className="ck-mono">{initials(cashier.name)}</span>
-                {cashier.name}
-              </button>
-            )
-          })}
-        </div>
-        <div className="ck-action">
-          <button type="button" className="ck-secondary" onClick={onClose}>
-            {text.close}
-          </button>
-        </div>
+  const portal = useContext(KioskPortalContext)
+  if (!portal) return null
+
+  return createPortal(
+    <SheetSurface labelledBy="cashier-title" onClose={onClose}>
+      <h2 id="cashier-title">{text.chooseCashier}</h2>
+      <p>{text.chooseCashierHint}</p>
+      {cashiers.length === 0 ? (
+        <p>{locale === "es" ? "Agrega cajeros desde la oficina." : "Add cashiers from the office dashboard."}</p>
+      ) : null}
+      <div className="ck-cashiers">
+        {cashiers.map((cashier) => {
+          const on = cashier.id === selectedId
+          return (
+            <motion.button
+              key={cashier.id}
+              type="button"
+              className={on ? "ck-cashier on" : "ck-cashier"}
+              onClick={() => onPick(cashier.id)}
+              whileTap={{ scale: 0.98 }}
+              transition={settle}
+            >
+              <span className="ck-mono">{initials(cashier.name)}</span>
+              {cashier.name}
+            </motion.button>
+          )
+        })}
       </div>
-    </div>
+      <div className="ck-action">
+        <button type="button" className="ck-secondary" onClick={onClose}>
+          {text.close}
+        </button>
+      </div>
+    </SheetSurface>,
+    portal,
   )
 }
 
@@ -799,7 +868,66 @@ function Field({
         {label} {required ? <span className="ck-req">*</span> : null}
       </label>
       {children}
-      <div className="ck-err">{error}</div>
+      <ErrorNote message={error} />
     </div>
+  )
+}
+
+function ErrorNote({ message }: { message?: string }) {
+  return (
+    <AnimatePresence initial={false}>
+      {message ? (
+        <motion.div
+          key="error"
+          className="ck-err"
+          role="alert"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          style={{ overflow: "hidden" }}
+        >
+          <div className="ck-err-text">{message}</div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  )
+}
+
+function SheetSurface({
+  labelledBy,
+  className,
+  onClose,
+  children,
+}: {
+  labelledBy: string
+  className?: string
+  onClose: () => void
+  children: ReactNode
+}) {
+  return (
+    <motion.div
+      className="ck-sheet"
+      role="presentation"
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={fade}
+    >
+      <motion.div
+        className={className ? `ck-dialog ${className}` : "ck-dialog"}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        onClick={(event) => event.stopPropagation()}
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 12, opacity: 0 }}
+        transition={settle}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
   )
 }
