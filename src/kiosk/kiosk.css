@@ -1227,7 +1227,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 700px), (max-height: 500px) {
   .ck-head {
     padding: 8px 12px;
     gap: 10px;
@@ -1410,10 +1410,15 @@
     height: 28px;
   }
 
+  .ck-summary {
+    margin-bottom: 8px;
+  }
+
   .ck-summary div {
-    grid-template-columns: 1fr;
-    gap: 2px;
-    padding: 8px 0;
+    grid-template-columns: 112px 1fr;
+    gap: 8px;
+    align-items: start;
+    padding: 7px 0;
   }
 
   .ck-choice {
@@ -1485,6 +1490,30 @@
 
   .ck-dates {
     gap: 8px;
+  }
+}
+
+@media (max-height: 500px) {
+  .ck-footer,
+  .ck-micro {
+    display: none;
+  }
+
+  .ck-head {
+    padding: 6px 12px;
+  }
+
+  .ck-face {
+    height: 34px;
+  }
+
+  .ck-wrap {
+    padding: 6px 8px;
+  }
+
+  .ck-panel h2 {
+    font-size: 22px;
+    margin: 4px 0 0;
   }
 }
 
