@@ -1,0 +1,81 @@
+.admin {
+  --color-ink: #142e57;
+  --color-ink-soft: #1c3d6e;
+  --color-cream: #ffffff;
+  --color-mist: #b6c6dc;
+  --color-brass: #f3a9b2;
+  --color-brass-deep: #cf2034;
+  --color-seal: #cf2034;
+  --color-paper: #f5f6f9;
+  --color-paper-2: #e6ebf2;
+  --color-line: #e1e5ed;
+  color: #19253a;
+  font-family: "DM Sans", Arial, sans-serif;
+  color-scheme: light;
+}
+
+.admin .font-display {
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.admin-stripe {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 9px;
+  background: linear-gradient(90deg, #cf2034 0 34%, #fff 34% 66%, #142e57 66%);
+}
+
+.admin :where(a, button).bg-ink {
+  background-color: #cf2034;
+  border-radius: 11px;
+  font-weight: 700;
+}
+
+.admin :where(a, button).bg-ink:hover {
+  background-color: #a71829;
+}
+
+.admin :where(a, button).border {
+  border-radius: 11px;
+}
+
+.admin :where(input, select, textarea),
+.admin :where(input, select, textarea).border.bg-white {
+  border-radius: 11px;
+}
+
+.admin :where(input, textarea, select):focus {
+  border-color: #5d85bb;
+  outline: 3px solid #dce8fb;
+}
+
+.admin .border-b {
+  border-radius: 0;
+}
+
+.admin .border.border-line.bg-white,
+.admin .border.bg-white {
+  border-radius: 16px;
+}
+
+.admin input.border,
+.admin textarea.border,
+.admin select.border {
+  border-radius: 11px;
+}
+
+.admin .h-1.bg-paper-2 {
+  overflow: hidden;
+  border-radius: 99px;
+}
+
+.admin .h-1.bg-ink {
+  background-color: #cf2034;
+}
+
+.admin .grid.h-10.w-10 {
+  border-radius: 13px;
+}
