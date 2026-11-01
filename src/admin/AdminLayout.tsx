@@ -9,6 +9,7 @@ const links = [
   { to: "/admin/messages", label: "Messages", end: false },
   { to: "/admin/catalog", label: "Bottles", end: false },
   { to: "/admin/staff", label: "Cashiers", end: false },
+  { to: "/admin/ranges", label: "Ranges", end: false },
   { to: "/admin/settings", label: "Settings", end: false },
 ]
 

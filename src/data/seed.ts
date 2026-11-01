@@ -1,5 +1,5 @@
 import { defaultMessaging } from "../lib/messaging"
-import type { Brand, Database } from "../types"
+import type { Brand, Customer, Database, ReceiptRange } from "../types"
 import { type SpiritId } from "../data/spirits"
 
 const bottles: Record<SpiritId, string[]> = {
@@ -36,9 +36,24 @@ function sampleBrands(): Brand[] {
 
 const bottle = makeBrandId
 
+export function defaultRanges(): ReceiptRange[] {
+  return [
+    { id: "10-50", label: "10-50", points: 10, rewards: 1 },
+    { id: "50-100", label: "50-100", points: 25, rewards: 2 },
+    { id: "100-200", label: "100-200", points: 50, rewards: 4 },
+    { id: "200-400", label: "200-400", points: 80, rewards: 6 },
+    { id: "400-700", label: "400-700", points: 120, rewards: 8 },
+    { id: "700-plus", label: "700+", points: 200, rewards: 12 },
+  ]
+}
+
+function withScores(customers: Array<Omit<Customer, "points" | "rewards">>): Customer[] {
+  return customers.map((customer) => ({ ...customer, points: 0, rewards: 0 }))
+}
+
 export function seedDatabase(): Database {
   return {
-    version: 2,
+    version: 3,
     activeCashierId: null,
     messaging: defaultMessaging(),
     cashiers: [
@@ -48,7 +63,9 @@ export function seedDatabase(): Database {
       { id: "jordan", name: "Jordan Blake", active: true },
     ],
     brands: sampleBrands(),
-    customers: [
+    ranges: defaultRanges(),
+    receipts: [],
+    customers: withScores([
       {
         id: "elena",
         name: "Elena Vasquez",
@@ -189,7 +206,7 @@ export function seedDatabase(): Database {
         createdAt: "2026-07-04T18:15:00.000Z",
         updatedAt: "2026-07-04T18:15:00.000Z",
       },
-    ],
+    ]),
     campaigns: [
       {
         id: "draft-tequila",

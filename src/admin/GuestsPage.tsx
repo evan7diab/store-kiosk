@@ -2,7 +2,7 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { SPIRITS, spiritName, type SpiritId } from "../data/spirits"
 import { formatStamp } from "../lib/dates"
-import { cashierName } from "../lib/people"
+import { cashierName, scoreText } from "../lib/people"
 import { useStore } from "../store"
 import { PageHeader, Tag } from "./AdminLayout"
 
@@ -60,6 +60,7 @@ export default function GuestsPage() {
               <span>
                 <span className="block text-lg">{customer.name}</span>
                 <span className="text-sm text-ink/55">{customer.email}</span>
+                <span className="text-sm text-ink/70">{scoreText(customer.points, customer.rewards)}</span>
               </span>
               <span className="flex flex-wrap gap-1">
                 {customer.spiritIds.map((id) => (

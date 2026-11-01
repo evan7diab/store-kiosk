@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react"
 import { SPIRITS, type Locale, type SpiritId } from "../data/spirits"
 import { DrinkIcon } from "./drinkIcons"
-import { copy, MONTHS, nextGuestLabel } from "../i18n"
+import { awardLine, copy, MONTHS, nextGuestLabel, totalsLine } from "../i18n"
 import { daysInMonth, formatBirthdayShort, isAtLeastAge, isoBirthday, yearOptions } from "../lib/dates"
-import { initials, validEmail, validPhone } from "../lib/people"
+import { findGuests, initials, validEmail, validPhone } from "../lib/people"
 import { useStore } from "../store"
-import type { Cashier } from "../types"
+import type { Cashier, Customer, ReceiptRange } from "../types"
 import "./kiosk.css"
 
 const EMAIL_DOMAINS = ["@yahoo.com", "@gmail.com", "@outlook.com", "@icloud.com", "@hotmail.com"]
@@ -18,6 +18,16 @@ function emailWithDomain(value: string, domain: string) {
 
 type Step = "details" | "drinks" | "confirm" | "thanks"
 type SheetMode = "browse" | "submit" | null
+type ReturnStep = "lookup" | "ranges" | "done"
+
+type Award = {
+  name: string
+  rangeLabel: string
+  points: number
+  rewards: number
+  totalPoints: number
+  totalRewards: number
+}
 
 type Draft = {
   first: string
@@ -53,6 +63,12 @@ export default function Kiosk() {
   const [consent, setConsent] = useState(false)
   const [ofAge, setOfAge] = useState(false)
   const [result, setResult] = useState<"created" | "updated">("created")
+  const [returnStep, setReturnStep] = useState<ReturnStep | null>(null)
+  const [lookup, setLookup] = useState("")
+  const [lookupError, setLookupError] = useState("")
+  const [guestId, setGuestId] = useState<string | null>(null)
+  const [award, setAward] = useState<Award | null>(null)
+  const logging = useRef(false)
   const text = copy[locale]
   const activeCashier = store.cashiers.find((cashier) => cashier.id === store.activeCashierId && cashier.active)
   const stepsRef = useRef<HTMLDivElement>(null)
@@ -84,6 +100,87 @@ export default function Kiosk() {
     setStep("details")
     setSheet(null)
   }, [])
+
+  const finishReturn = useCallback(() => {
+    setReturnStep(null)
+    setLookup("")
+    setLookupError("")
+    setGuestId(null)
+    setAward(null)
+    logging.current = false
+    reset()
+  }, [reset])
+
+  function openReturn() {
+    setReturnStep("lookup")
+    setLookup("")
+    setLookupError("")
+    setGuestId(null)
+    setAward(null)
+    logging.current = false
+  }
+
+  function closeReturn() {
+    setReturnStep(null)
+    setLookupError("")
+    logging.current = false
+    if (step === "thanks") reset()
+  }
+
+  function confirmLookup() {
+    const value = lookup.trim()
+    if (!value) {
+      setLookupError(text.returnLookupError)
+      return
+    }
+    if (value.includes("@")) {
+      if (!validEmail(value)) {
+        setLookupError(text.emailError)
+        return
+      }
+    } else if (!validPhone(value)) {
+      setLookupError(text.phoneError)
+      return
+    }
+    const matches = findGuests(store.customers, value)
+    if (matches.length === 0) {
+      setLookupError(text.returnNotFound)
+      return
+    }
+    if (matches.length > 1) {
+      setLookupError(text.returnMany)
+      return
+    }
+    setDraft(emptyDraft)
+    setErrors({})
+    setConsent(false)
+    setOfAge(false)
+    setStep("details")
+    setGuestId(matches[0].id)
+    setLookupError("")
+    setReturnStep("ranges")
+  }
+
+  function pickRange(rangeId: string) {
+    if (logging.current || !guestId) return
+    const guest = store.customers.find((customer) => customer.id === guestId)
+    if (!guest) return
+    logging.current = true
+    const logged = store.logReceipt(guestId, rangeId)
+    if (!logged) {
+      logging.current = false
+      setLookupError(text.receiptEmpty)
+      return
+    }
+    setAward({
+      name: guest.name.trim().split(/\s+/)[0] ?? "",
+      ...logged,
+    })
+    setLookupError("")
+    setReturnStep("done")
+  }
+
+  const returningGuest = store.customers.find((customer) => customer.id === guestId)
 
   function finish(cashierId: string) {
     const birthday = isoBirthday(draft.year, draft.month, draft.day)
@@ -211,17 +308,46 @@ export default function Kiosk() {
               <img className="ck-mascot" src={`${import.meta.env.BASE_URL}brand/mascot.png`} alt="Circus Liquor" />
             </div>
             <div className="ck-sidefoot">
-              <div className="ck-shield">♧</div>
               <span>
                 {text.sideCare}
                 <br />
                 {text.sideCare2}
               </span>
+              <button type="button" className={returnStep ? "ck-return on" : "ck-return"} onClick={openReturn}>
+                {text.alreadyRegistered}
+              </button>
             </div>
           </aside>
 
           <div className="ck-panel">
-            {step === "thanks" ? (
+            {returnStep === "done" && award ? (
+              <ReceiptSaved locale={locale} award={award} onDone={finishReturn} />
+            ) : returnStep === "ranges" ? (
+              <ReceiptRanges
+                locale={locale}
+                guest={returningGuest}
+                ranges={store.ranges}
+                error={lookupError}
+                onBack={() => {
+                  setLookupError("")
+                  logging.current = false
+                  setReturnStep("lookup")
+                }}
+                onPick={pickRange}
+              />
+            ) : returnStep === "lookup" ? (
+              <ReturnLookup
+                locale={locale}
+                value={lookup}
+                error={lookupError}
+                onChange={(value) => {
+                  setLookup(value)
+                  setLookupError("")
+                }}
+                onBack={closeReturn}
+                onContinue={confirmLookup}
+              />
+            ) : step === "thanks" ? (
               <Success locale={locale} result={result} name={draft.first.trim()} onDone={reset} />
             ) : (
               <>
@@ -631,6 +757,189 @@ function Success({
         {name ? `${name}, ` : ""}
         {text.thanksSub}
       </p>
+      <div
+        className="ck-timer"
+        role="timer"
+        aria-label={nextGuestLabel(locale, seconds)}
+        style={{ ["--ck-circ" as string]: RING_LENGTH, ["--ck-reset" as string]: `${RESET_SECONDS}s` }}
+      >
+        <svg viewBox="0 0 108 108" aria-hidden="true">
+          <circle className="ck-timer-track" cx="54" cy="54" r={RING_RADIUS} />
+          <circle className="ck-timer-value" cx="54" cy="54" r={RING_RADIUS} />
+        </svg>
+        <span className="ck-timer-num">{seconds}</span>
+      </div>
+      <p className="ck-timer-label">{text.nextGuest}</p>
+      <button type="button" className="ck-done" onClick={onDone}>
+        {text.registerAnother}
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  )
+}
+
+function ReturnLookup({
+  locale,
+  value,
+  error,
+  onChange,
+  onBack,
+  onContinue,
+}: {
+  locale: Locale
+  value: string
+  error: string
+  onChange: (value: string) => void
+  onBack: () => void
+  onContinue: () => void
+}) {
+  const text = copy[locale]
+  const inputRef = useRef<HTMLInputElement>(null)
+  const selectedDomain = EMAIL_DOMAINS.find((domain) => value.toLowerCase().endsWith(domain))
+
+  function chooseDomain(domain: string) {
+    const next = emailWithDomain(value, domain)
+    onChange(next)
+    const at = next.indexOf("@")
+    requestAnimationFrame(() => {
+      const input = inputRef.current
+      if (!input) return
+      input.focus()
+      const caret = at <= 0 ? 0 : next.length
+      input.setSelectionRange(caret, caret)
+    })
+  }
+
+  return (
+    <form
+      className="ck-return-form"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onContinue()
+      }}
+    >
+      <h2>{text.returnTitle}</h2>
+      <p className="ck-intro">{text.returnHint}</p>
+      <div className="ck-steps">
+        <Field label={text.returnField} required error={error}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            placeholder={text.returnPlaceholder}
+            autoComplete="off"
+            autoCapitalize="none"
+            className={error ? "invalid" : ""}
+            onChange={(event) => onChange(event.target.value)}
+          />
+          <div className="ck-domains" role="group" aria-label={text.email}>
+            {EMAIL_DOMAINS.map((domain) => (
+              <button
+                key={domain}
+                type="button"
+                className={selectedDomain === domain ? "active" : ""}
+                onClick={() => chooseDomain(domain)}
+              >
+                {domain}
+              </button>
+            ))}
+          </div>
+        </Field>
+      </div>
+      <div className="ck-action">
+        <button type="button" className="ck-secondary" onClick={onBack}>
+          {text.back}
+        </button>
+        <button type="submit" className="ck-primary">
+          {text.continue} &nbsp; →
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ReceiptRanges({
+  locale,
+  guest,
+  ranges,
+  error,
+  onBack,
+  onPick,
+}: {
+  locale: Locale
+  guest?: Customer
+  ranges: ReceiptRange[]
+  error: string
+  onBack: () => void
+  onPick: (rangeId: string) => void
+}) {
+  const text = copy[locale]
+  const first = guest?.name.trim().split(/\s+/)[0] ?? ""
+  return (
+    <div className="ck-return-form">
+      <h2>{text.receiptTitle}</h2>
+      <p className="ck-intro">
+        {first ? `${text.receiptHello}, ${first}. ` : ""}
+        {ranges.length === 0 ? text.receiptEmpty : text.receiptHint}
+      </p>
+      <div className="ck-steps">
+        <div className="ck-ranges">
+          {ranges.map((range) => (
+            <button key={range.id} type="button" className="ck-range" onClick={() => onPick(range.id)}>
+              {range.label}
+            </button>
+          ))}
+        </div>
+        {error ? (
+          <div className="ck-err show" role="alert">
+            {error}
+          </div>
+        ) : null}
+      </div>
+      <div className="ck-action">
+        <button type="button" className="ck-secondary" onClick={onBack}>
+          {text.back}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ReceiptSaved({ locale, award, onDone }: { locale: Locale; award: Award; onDone: () => void }) {
+  const text = copy[locale]
+  const [left, setLeft] = useState(RESET_SECONDS)
+
+  useEffect(() => {
+    const started = performance.now()
+    const tick = window.setInterval(() => {
+      const remaining = RESET_SECONDS * 1000 - (performance.now() - started)
+      setLeft(Math.max(0, Math.ceil(remaining / 1000)))
+    }, 200)
+    const done = window.setTimeout(onDone, RESET_SECONDS * 1000)
+    return () => {
+      window.clearInterval(tick)
+      window.clearTimeout(done)
+    }
+  }, [onDone])
+
+  const seconds = Math.max(left, 0)
+
+  return (
+    <div className="ck-success">
+      <div className="ck-check" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path d="M14 25.2 21.2 32.2 34.8 16.8" />
+        </svg>
+      </div>
+      <p className="ck-success-kicker">{text.thanksEyebrow}</p>
+      <h2>{text.awardTitle}</h2>
+      <p className="ck-success-copy">
+        {award.name ? `${award.name}, ` : ""}
+        {awardLine(locale, award.points, award.rewards)}
+      </p>
+      <p className="ck-success-copy">{award.rangeLabel}</p>
+      <p className="ck-success-kicker">{text.awardTotals}</p>
+      <p className="ck-success-copy">{totalsLine(locale, award.totalPoints, award.totalRewards)}</p>
       <div
         className="ck-timer"
         role="timer"

@@ -8,6 +8,7 @@ import GuestsPage from "./admin/GuestsPage"
 import GroupsPage from "./admin/GroupsPage"
 import MessagesPage from "./admin/MessagesPage"
 import OverviewPage from "./admin/OverviewPage"
+import RangesPage from "./admin/RangesPage"
 import SettingsPage from "./admin/SettingsPage"
 import Kiosk from "./kiosk/Kiosk"
 import Home from "./pages/Home"
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="messages/new" element={<ComposerPage />} />
             <Route path="catalog" element={<BottlesPage />} />
             <Route path="staff" element={<CashiersPage />} />
+            <Route path="ranges" element={<RangesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

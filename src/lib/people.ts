@@ -47,5 +47,30 @@ export function validEmail(value: string) {
 }
 
 export function validPhone(value: string) {
-  return value.replace(/\D/g, "").length >= 10
+  return phoneKey(value).length === 10
+}
+
+export function phoneKey(value: string) {
+  const digits = value.replace(/\D/g, "")
+  if (digits.length < 10) return ""
+  return digits.slice(-10)
+}
+
+export function scoreText(points: number, rewards: number, added = false) {
+  const pointLabel = points === 1 ? "point" : "points"
+  const rewardLabel = rewards === 1 ? "reward" : "rewards"
+  const mark = added ? "+" : ""
+  return `${mark}${points} ${pointLabel} · ${mark}${rewards} ${rewardLabel}`
+}
+
+export function findGuests(customers: Customer[], query: string) {
+  const value = query.trim()
+  if (!value) return []
+  if (value.includes("@")) {
+    const email = value.toLowerCase()
+    return customers.filter((customer) => customer.email.trim().toLowerCase() === email)
+  }
+  const key = phoneKey(value)
+  if (!key) return []
+  return customers.filter((customer) => phoneKey(customer.phone) === key)
 }
