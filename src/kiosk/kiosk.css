@@ -296,41 +296,39 @@
   font-size: 12px;
   color: #b6c6dc;
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: center;
+  justify-content: space-between;
 }
 
-.ck-return {
+.ck-sidefoot span {
+  min-width: 0;
+  font-weight: 700;
+}
+
+.ck .ck-return {
   position: relative;
   z-index: 2;
-  align-self: flex-start;
   flex: none;
-  margin-top: 12px;
+  margin: 0;
   border: 0;
   background: transparent;
   color: #fff;
   padding: 0;
+  font-family: Outfit, Arial, sans-serif;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.01em;
+  line-height: 1.2;
+  text-align: right;
   text-decoration: underline;
   text-underline-offset: 4px;
+  white-space: nowrap;
 }
 
-.ck-return.on,
-.ck-return:hover {
+.ck .ck-return.on,
+.ck .ck-return:hover {
   color: #ffd5db;
-}
-
-.ck-shield {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border: 1px solid #ffffff50;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  font-size: 21px;
 }
 
 .ck-panel {
@@ -1205,8 +1203,13 @@
   }
 
   .ck-sep,
-  .ck-sidefoot {
+  .ck-sidefoot span {
     display: none;
+  }
+
+  .ck-sidefoot {
+    border-top: 0;
+    padding-top: 8px;
   }
 
   .ck-panel {
@@ -1330,10 +1333,20 @@
     overflow: hidden;
   }
 
-  .ck-return {
+  .ck-sidefoot {
+    display: flex;
     flex: 1 0 100%;
-    margin-top: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .ck-sidefoot span {
+    display: none;
+  }
+
+  .ck .ck-return {
     font-size: 13px;
+    text-align: left;
   }
 
   .ck-sidecontent {
@@ -1347,7 +1360,7 @@
   .ck-eyebrow,
   .ck-sep,
   .ck-side p,
-  .ck-sidefoot {
+  .ck-sidefoot span {
     display: none;
   }
 

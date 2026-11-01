@@ -20,7 +20,7 @@ export default function Home() {
           <div className="home-copy">
             <p className="home-kicker">On the iPad</p>
             <h1>The stand</h1>
-            <p>The guest fills this in. English or Spanish. Landscape, built for a large iPad.</p>
+            <p>Customers register for drink alerts, then log receipts to earn points and rewards.</p>
             <Link to="/kiosk" className="home-btn home-btn-light">
               Open the kiosk
             </Link>
@@ -35,7 +35,7 @@ export default function Home() {
           <div className="home-copy">
             <p className="home-kicker">In the office</p>
             <h1>The desk</h1>
-            <p>Look up a guest, message everyone who drinks tequila, or everyone who drinks bourbon.</p>
+            <p>See each customer's points and rewards, and message everyone who drinks tequila or bourbon.</p>
             <Link to="/admin" className="home-btn home-btn-red">
               Open the dashboard
             </Link>

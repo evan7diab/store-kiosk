@@ -308,16 +308,15 @@ export default function Kiosk() {
               <img className="ck-mascot" src={`${import.meta.env.BASE_URL}brand/mascot.png`} alt="Circus Liquor" />
             </div>
             <div className="ck-sidefoot">
-              <div className="ck-shield">♧</div>
               <span>
                 {text.sideCare}
                 <br />
                 {text.sideCare2}
               </span>
+              <button type="button" className={returnStep ? "ck-return on" : "ck-return"} onClick={openReturn}>
+                {text.alreadyRegistered}
+              </button>
             </div>
-            <button type="button" className={returnStep ? "ck-return on" : "ck-return"} onClick={openReturn}>
-              {text.alreadyRegistered}
-            </button>
           </aside>
 
           <div className="ck-panel">
