@@ -57,7 +57,65 @@ const stepShift = {
 
 const KioskPortalContext = createContext<HTMLElement | null>(null)
 
+function useStayAwake() {
+  useEffect(() => {
+    const available = "wakeLock" in navigator ? navigator.wakeLock : null
+    if (!available) return
+    const wakeLock = available
+
+    let sentinel: WakeLockSentinel | null = null
+    let pending = false
+    let stopped = false
+    let retry = 0
+
+    async function acquire() {
+      if (stopped || pending || sentinel || document.visibilityState !== "visible") return
+      pending = true
+      try {
+        const next = await wakeLock.request("screen")
+        if (stopped) {
+          await next.release()
+          return
+        }
+        sentinel = next
+        next.addEventListener("release", () => {
+          if (sentinel !== next) return
+          sentinel = null
+          if (stopped || document.visibilityState !== "visible") return
+          window.clearTimeout(retry)
+          retry = window.setTimeout(() => {
+            void acquire()
+          }, 1000)
+        })
+      } catch {
+        // The iPad refuses the lock while the page is hidden or Low Power Mode is on.
+      } finally {
+        pending = false
+      }
+    }
+
+    function onForeground() {
+      void acquire()
+    }
+
+    void acquire()
+    document.addEventListener("visibilitychange", onForeground)
+    window.addEventListener("pointerdown", onForeground)
+
+    return () => {
+      stopped = true
+      window.clearTimeout(retry)
+      document.removeEventListener("visibilitychange", onForeground)
+      window.removeEventListener("pointerdown", onForeground)
+      const held = sentinel
+      sentinel = null
+      void held?.release().catch(() => {})
+    }
+  }, [])
+}
+
 export default function Kiosk() {
+  useStayAwake()
   const store = useStore()
   const [locale, setLocale] = useState<Locale>("en")
   const [step, setStep] = useState<Step>("details")
