@@ -795,6 +795,22 @@ function ReturnLookup({
   onContinue: () => void
 }) {
   const text = copy[locale]
+  const inputRef = useRef<HTMLInputElement>(null)
+  const selectedDomain = EMAIL_DOMAINS.find((domain) => value.toLowerCase().endsWith(domain))
+
+  function chooseDomain(domain: string) {
+    const next = emailWithDomain(value, domain)
+    onChange(next)
+    const at = next.indexOf("@")
+    requestAnimationFrame(() => {
+      const input = inputRef.current
+      if (!input) return
+      input.focus()
+      const caret = at <= 0 ? 0 : next.length
+      input.setSelectionRange(caret, caret)
+    })
+  }
+
   return (
     <form
       className="ck-return-form"
@@ -808,13 +824,27 @@ function ReturnLookup({
       <div className="ck-steps">
         <Field label={text.returnField} required error={error}>
           <input
+            ref={inputRef}
             type="text"
             value={value}
             placeholder={text.returnPlaceholder}
             autoComplete="off"
+            autoCapitalize="none"
             className={error ? "invalid" : ""}
             onChange={(event) => onChange(event.target.value)}
           />
+          <div className="ck-domains" role="group" aria-label={text.email}>
+            {EMAIL_DOMAINS.map((domain) => (
+              <button
+                key={domain}
+                type="button"
+                className={selectedDomain === domain ? "active" : ""}
+                onClick={() => chooseDomain(domain)}
+              >
+                {domain}
+              </button>
+            ))}
+          </div>
         </Field>
       </div>
       <div className="ck-action">
